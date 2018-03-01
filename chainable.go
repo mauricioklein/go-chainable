@@ -1,72 +1,98 @@
-package main
+package chainable
 
 import (
-	"fmt"
+	"errors"
+	"reflect"
 )
 
-// Args defines a list of arguments accepted
-// and returned by chainable functions
-type Args []interface{}
+var (
+	errNotAFunction             = errors.New("fn is not a function")
+	errArgumentMismatch         = errors.New("fn argument mismatch")
+	errRightmostValueNotAnError = errors.New("rightmost return value should be an error")
+)
 
-// NoArgs defines an empty list of arguments
-var NoArgs = Args{}
-
-// ChainableFunc defines the function signature accepted
-// by Chainable
-type ChainableFunc func(Args) (Args, error)
-
-// Chainable defines the chainable structure
+// Chainable defines a new chain structure
 type Chainable struct {
-	initialValue Args
-	calls        []ChainableFunc
+	initialValue []interface{}
+	functions    []interface{}
 }
 
-// New initalizes a chainable structure
+// New instantiate a new chain instance
 func New() *Chainable {
 	return &Chainable{}
 }
 
-// InitialValue defines the value used as argument for the
-// first function in the chain
-func (c *Chainable) InitialValue(al Args) *Chainable {
-	c.initialValue = al
+// From defines the arguments provided to the first
+// function in a chain
+func (c *Chainable) From(args []interface{}) *Chainable {
+	c.initialValue = args
 	return c
 }
 
-// Chain adds a new function to the chain
-func (c *Chainable) Chain(f ChainableFunc) *Chainable {
-	c.calls = append(c.calls, f)
+// Chain adds a new function to the end of the chain
+func (c *Chainable) Chain(fn interface{}) *Chainable {
+	c.functions = append(c.functions, fn)
 	return c
 }
 
-// Wrap process a chain and returns the last return
-// value and error
-func (c *Chainable) Wrap() (Args, error) {
-	lastRet := c.initialValue
+// Unwrap process a chain, returning the result and error
+// of the last execution (success or error)
+func (c *Chainable) Unwrap() ([]interface{}, error) {
+	v := c.initialValue
 	var err error
 
-	for _, c := range c.calls {
-		if lastRet, err = c(lastRet); err != nil {
+	for _, fn := range c.functions {
+		v, err = callFn(fn, v)
+		if err != nil {
 			return nil, err
 		}
+
 	}
 
-	return lastRet, nil
+	return v, nil
 }
 
-func main() {
-	chainable := New()
+// callFn calls the function fn, transforming args
+// using reflection
+func callFn(fn interface{}, args []interface{}) ([]interface{}, error) {
+	vfn := reflect.ValueOf(fn)
 
-	f1 := func(Args) (Args, error) { return NoArgs, nil }
-	f2 := func(Args) (Args, error) { return NoArgs, nil }
-	f3 := func(Args) (Args, error) { return NoArgs, nil }
+	// check if it's a function
+	if vfn.Type().Kind() != reflect.Func {
+		return nil, errNotAFunction
+	}
 
-	ret, err := chainable.
-		Chain(f1).
-		Chain(f2).
-		Chain(f3).
-		Wrap()
+	// build the reflected args
+	reflectedArgs, err := buildReflectedArgs(vfn, args)
+	if err != nil {
+		return nil, err
+	}
 
-	fmt.Printf("Ret, Err: %+v, %+v\n", ret, err)
+	// call the function
+	out := []interface{}{}
+	for _, o := range vfn.Call(reflectedArgs) {
+		out = append(out, o.Interface())
+	}
 
+	err, ok := out[len(out)-1].(error)
+	if !ok && out[len(out)-1] != nil {
+		return nil, errRightmostValueNotAnError
+	}
+
+	return out[:len(out)-1], err
+}
+
+// buildReflectedArgs transforms the args list in a list of
+// reflect.Value, used to call a function using reflection
+func buildReflectedArgs(vfn reflect.Value, args []interface{}) ([]reflect.Value, error) {
+	if !vfn.Type().IsVariadic() && (vfn.Type().NumIn() != len(args)) {
+		return nil, errArgumentMismatch
+	}
+
+	in := make([]reflect.Value, len(args))
+	for k, arg := range args {
+		in[k] = reflect.ValueOf(arg)
+	}
+
+	return in, nil
 }
