@@ -12,17 +12,16 @@ func TestChain_Success(t *testing.T) {
 
 	// (4 + 2) * 2 = 12
 	ret, err := New().
-		From([]interface{}{4}).
-		Chain(sum2).
-		Chain(mul2).
+		From(4).
+		Link(sum2, mul2).
 		Unwrap()
 
 	assert.Equal(t, []interface{}{12}, ret)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 func TestChain_NotAFunction(t *testing.T) {
-	_, err := New().Chain("not a function").Unwrap()
+	_, err := New().Link("not a function").Unwrap()
 	assert.EqualError(t, err, errNotAFunction.Error())
 }
 
@@ -30,13 +29,13 @@ func TestChain_ArgumentMismatch(t *testing.T) {
 	f1 := func() (int, error) { return 0, nil }
 	f2 := func(a, b int) (int, error) { return 0, nil }
 
-	_, err := New().Chain(f1).Chain(f2).Unwrap()
+	_, err := New().Link(f1, f2).Unwrap()
 	assert.EqualError(t, err, errArgumentMismatch.Error())
 }
 
-func TestChain_RightmostValueNotAnError(t *testing.T) {
-	f := func() int { return 0 }
+func TestChain_AcceptFunctionNotReturningError(t *testing.T) {
+	f1 := func() int { return 0 }
 
-	_, err := New().Chain(f).Unwrap()
-	assert.EqualError(t, err, errRightmostValueNotAnError.Error())
+	_, err := New().Link(f1).Unwrap()
+	assert.NoError(t, err)
 }
