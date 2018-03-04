@@ -67,6 +67,15 @@ func (c *Chainable) Unwrap() ([]interface{}, error) {
 	return v, nil
 }
 
+// Reset cleanups a chain, removing all
+// the links and initial values
+func (c *Chainable) Reset() *Chainable {
+	c.from = []interface{}{}
+	c.links = []Link{}
+
+	return c
+}
+
 // addFunc add a new function to the chain, creating the underlying link
 func (c *Chainable) addFunc(fn interface{}, handleError bool) {
 	c.links = append(c.links, Link{

@@ -44,3 +44,12 @@ func TestArgumentMismatch(t *testing.T) {
 	_, err := New().Chain(f1, f2).Unwrap()
 	assert.EqualError(t, err, errArgumentMismatch.Error())
 }
+
+func TestReset(t *testing.T) {
+	returnOne := func() int { return 1 }
+
+	res, err := New().Chain(returnOne).Reset().Unwrap()
+
+	assert.Equal(t, []interface{}{}, res)
+	assert.NoError(t, err)
+}
