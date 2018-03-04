@@ -1,5 +1,7 @@
 # Go-chainable
 
+[![Build Status](https://travis-ci.org/mauricioklein/go-chainable.svg?branch=master)](https://travis-ci.org/mauricioklein/go-chainable)
+
 Chain functions execution, with support to argument's feedback and error-handling.
 
 ## Motivation
