@@ -1,6 +1,8 @@
 # Go-chainable
 
 [![Build Status](https://travis-ci.org/mauricioklein/go-chainable.svg?branch=master)](https://travis-ci.org/mauricioklein/go-chainable)
+[![Maintainability](https://api.codeclimate.com/v1/badges/e00a9b448408857da9b6/maintainability)](https://codeclimate.com/github/mauricioklein/go-chainable/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/e00a9b448408857da9b6/test_coverage)](https://codeclimate.com/github/mauricioklein/go-chainable/test_coverage)
 
 Chain functions execution, with support to argument's feedback and error-handling.
 
