@@ -7,6 +7,10 @@
 
 Provides an easy and convenient way of chaining function calls in Golang, with support to argument's feedback and error-handling
 
+## Requirements
+
+- Go 1.2 or later
+
 ## Installation
 
 ```go
