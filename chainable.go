@@ -178,14 +178,8 @@ func processLink(lk link, args []interface{}) ([]interface{}, error) {
 	vfn := reflect.ValueOf(lk.fn)
 	vfnType := vfn.Type()
 
-	// check if it's a function
-	if vfnType.Kind() != reflect.Func {
-		return nil, errNotAFunction
-	}
-
-	// check if args matches the function arity
-	if !vfnType.IsVariadic() && (vfnType.NumIn() != len(args)) {
-		return nil, errArgumentMismatch
+	if err := validateFuncAndArgs(vfnType, len(args)); err != nil {
+		return nil, err
 	}
 
 	// call the function
@@ -203,6 +197,20 @@ func processLink(lk link, args []interface{}) ([]interface{}, error) {
 	}
 
 	return out, nil
+}
+
+// validateFuncAndArgs validates if obType is a function
+// and nArgs matches the arity of this function
+func validateFuncAndArgs(obType reflect.Type, nArgs int) error {
+	if obType.Kind() != reflect.Func {
+		return errNotAFunction
+	}
+
+	if !obType.IsVariadic() && (obType.NumIn() != nArgs) {
+		return errArgumentMismatch
+	}
+
+	return nil
 }
 
 // reflectArgs transforms the args list in a list of
