@@ -33,10 +33,12 @@ func NewArgumentMismatchError(linkIndex, nArgs, fnArity int) *ArgumentMismatchEr
 	}
 }
 
+// Error provides the description of the error
 func (err *NotAFunctionError) Error() string {
 	return fmt.Sprintf("(Error on Link: %d) Element isn't a function", err.linkIndex)
 }
 
+// Error provides the description of the error
 func (err *ArgumentMismatchError) Error() string {
 	return fmt.Sprintf("(Error on Link: %d) %d arg(s) provided, but function arity is %d", err.linkIndex, err.nArgs, err.fnArity)
 }
