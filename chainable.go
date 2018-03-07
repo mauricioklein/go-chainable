@@ -176,9 +176,12 @@ func (c *Chainable) addFunc(fn interface{}, handleError bool) {
 // processLink calls the function fn associated to the link, transforming args using reflection
 func processLink(lk link, args []interface{}) ([]interface{}, error) {
 	vfn := reflect.ValueOf(lk.fn)
-	vfnType := vfn.Type()
+	if err := validateFunc(vfn); err != nil {
+		return nil, err
+	}
 
-	if err := validateFuncAndArgs(vfnType, len(args)); err != nil {
+	vfnType := vfn.Type()
+	if err := validateFuncArgs(vfnType, args); err != nil {
 		return nil, err
 	}
 
@@ -199,14 +202,23 @@ func processLink(lk link, args []interface{}) ([]interface{}, error) {
 	return out, nil
 }
 
-// validateFuncAndArgs validates if obType is a function
-// and nArgs matches the arity of this function
-func validateFuncAndArgs(obType reflect.Type, nArgs int) error {
-	if obType.Kind() != reflect.Func {
+// validateFunc validates if obj is a function
+func validateFunc(obj reflect.Value) error {
+	// Zero value reflected: not a valid function
+	if obj == (reflect.Value{}) {
 		return errNotAFunction
 	}
 
-	if !obType.IsVariadic() && (obType.NumIn() != nArgs) {
+	if obj.Type().Kind() != reflect.Func {
+		return errNotAFunction
+	}
+
+	return nil
+}
+
+// validateFuncArgs validates if len(args) matches the arity of fn
+func validateFuncArgs(fn reflect.Type, args []interface{}) error {
+	if !fn.IsVariadic() && (fn.NumIn() != len(args)) {
 		return errArgumentMismatch
 	}
 
