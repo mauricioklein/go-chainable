@@ -33,7 +33,18 @@ func TestChainDummy(t *testing.T) {
 }
 
 func TestNotAFunction(t *testing.T) {
-	_, err := New().Chain("not a function").Unwrap()
+	var err error
+
+	// string
+	_, err = New().Chain("not a function").Unwrap()
+	assert.EqualError(t, err, errNotAFunction.Error())
+
+	// number
+	_, err = New().Chain(123).Unwrap()
+	assert.EqualError(t, err, errNotAFunction.Error())
+
+	// nil
+	_, err = New().Chain(nil).Unwrap()
 	assert.EqualError(t, err, errNotAFunction.Error())
 }
 
