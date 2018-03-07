@@ -9,7 +9,7 @@ Provides an easy and convenient way of chaining function calls in Golang, with s
 
 ## Requirements
 
-- Go 1.2 or later
+- Go 1.6 or later
 
 ## Installation
 
