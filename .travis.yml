@@ -1,27 +1,36 @@
 language: go
 sudo: false
 
-env:
-  global:
-    - CC_TEST_REPORTER_ID=d7dd95e600e1e6d6459116df4fe6e4354465d857d4bd133c96ea10b0da03ee5a
+notifications:
+  email: false
 
 go:
-  - "1.2"
-  - "1.3"
-  - "1.4"
-  - "1.5"
   - "1.6"
   - "1.7"
   - "1.8"
   - "1.9"
   - "1.10"
 
+install:
+  - go get -t -v ./...
+
 before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - GO_FILES=$(find . -iname '*.go' -type f | grep -v /vendor/) # All the .go files, excluding vendor/
+  - go get github.com/golang/lint/golint                        # Install golint
+  - go get honnef.co/go/tools/cmd/megacheck                     # Install megacheck
+  - go get github.com/fzipp/gocyclo                             # Install gocycle
+
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter # Install CodeClimate reporter
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 
-script: go test -v -coverprofile c.out ./...
+script:
+  - test -z $(gofmt -s -l $GO_FILES)           # Fail if a .go file hasn't been formatted with gofmt
+  - go vet ./...                               # go vet is the official Go static analyzer
+  - megacheck ./...                            # "go vet on steroids" + linter
+  - gocyclo -over 19 $GO_FILES                 # forbid code with huge functions
+  - golint -set_exit_status $(go list ./...)   # one last linter
+  - go test -v -race -coverprofile c.out ./... # Run the tests with race-condition enabled and generate the coverage report
 
 after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT # Report coverage to CodeClimate
