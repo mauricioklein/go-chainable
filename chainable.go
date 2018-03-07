@@ -89,13 +89,7 @@ Finally, to reset a chain and make it ready to be reused, just call the method "
 package chainable
 
 import (
-	"errors"
 	"reflect"
-)
-
-var (
-	errNotAFunction     = errors.New("fn is not a function")
-	errArgumentMismatch = errors.New("fn argument mismatch")
 )
 
 // Chainable defines the chain logic.
@@ -147,8 +141,8 @@ func (c *Chainable) Unwrap() ([]interface{}, error) {
 	v := c.from
 	var err error
 
-	for _, link := range c.links {
-		if v, err = processLink(link, v); err != nil {
+	for linkIndex, link := range c.links {
+		if v, err = link.process(linkIndex, v); err != nil {
 			return nil, err
 		}
 	}
@@ -173,15 +167,15 @@ func (c *Chainable) addFunc(fn interface{}, handleError bool) {
 	})
 }
 
-// processLink calls the function fn associated to the link, transforming args using reflection
-func processLink(lk link, args []interface{}) ([]interface{}, error) {
+// process calls the function fn associated to the link, transforming args using reflection
+func (lk *link) process(linkIndex int, args []interface{}) ([]interface{}, error) {
 	vfn := reflect.ValueOf(lk.fn)
-	if err := validateFunc(vfn); err != nil {
+	if err := validateFunc(linkIndex, vfn); err != nil {
 		return nil, err
 	}
 
 	vfnType := vfn.Type()
-	if err := validateFuncArgs(vfnType, args); err != nil {
+	if err := validateArgs(linkIndex, vfnType, args); err != nil {
 		return nil, err
 	}
 
@@ -203,23 +197,23 @@ func processLink(lk link, args []interface{}) ([]interface{}, error) {
 }
 
 // validateFunc validates if obj is a function
-func validateFunc(obj reflect.Value) error {
+func validateFunc(linkIndex int, obj reflect.Value) error {
 	// Zero value reflected: not a valid function
 	if obj == (reflect.Value{}) {
-		return errNotAFunction
+		return NewNotAFunctionError(linkIndex)
 	}
 
 	if obj.Type().Kind() != reflect.Func {
-		return errNotAFunction
+		return NewNotAFunctionError(linkIndex)
 	}
 
 	return nil
 }
 
 // validateFuncArgs validates if len(args) matches the arity of fn
-func validateFuncArgs(fn reflect.Type, args []interface{}) error {
+func validateArgs(linkIndex int, fn reflect.Type, args []interface{}) error {
 	if !fn.IsVariadic() && (fn.NumIn() != len(args)) {
-		return errArgumentMismatch
+		return NewArgumentMismatchError(linkIndex, len(args), fn.NumIn())
 	}
 
 	return nil
