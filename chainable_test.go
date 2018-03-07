@@ -37,15 +37,15 @@ func TestNotAFunction(t *testing.T) {
 
 	// string
 	_, err = New().Chain("not a function").Unwrap()
-	assert.EqualError(t, err, errNotAFunction.Error())
+	assert.EqualError(t, err, "(Error on Link: 0) Element isn't a function")
 
 	// number
 	_, err = New().Chain(123).Unwrap()
-	assert.EqualError(t, err, errNotAFunction.Error())
+	assert.EqualError(t, err, "(Error on Link: 0) Element isn't a function")
 
 	// nil
 	_, err = New().Chain(nil).Unwrap()
-	assert.EqualError(t, err, errNotAFunction.Error())
+	assert.EqualError(t, err, "(Error on Link: 0) Element isn't a function")
 }
 
 func TestArgumentMismatch(t *testing.T) {
@@ -53,7 +53,7 @@ func TestArgumentMismatch(t *testing.T) {
 	f2 := func(a, b int) (int, error) { return 0, nil }
 
 	_, err := New().Chain(f1, f2).Unwrap()
-	assert.EqualError(t, err, errArgumentMismatch.Error())
+	assert.EqualError(t, err, "(Error on Link: 1) 1 arg(s) provided, but function arity is 2")
 }
 
 func TestReset(t *testing.T) {
