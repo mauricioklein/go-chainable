@@ -4,6 +4,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/e00a9b448408857da9b6/maintainability)](https://codeclimate.com/github/mauricioklein/go-chainable/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/e00a9b448408857da9b6/test_coverage)](https://codeclimate.com/github/mauricioklein/go-chainable/test_coverage)
 [![GoDoc](https://godoc.org/github.com/mauricioklein/go-chainable?status.svg)](https://godoc.org/github.com/mauricioklein/go-chainable)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Provides an easy and convenient way of chaining function calls in Golang, with support to argument's feedback and error-handling
 
