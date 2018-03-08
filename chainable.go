@@ -119,18 +119,14 @@ func (c *Chainable) From(args ...interface{}) *Chainable {
 // Chain appends a new function to the chain, with error
 // handling enabled
 func (c *Chainable) Chain(funcs ...interface{}) *Chainable {
-	for _, fn := range funcs {
-		c.addFunc(fn, true)
-	}
+	c.addFuncs(funcs, true)
 	return c
 }
 
 // ChainDummy appends a new function to the chain, with error
 // handling disabled
 func (c *Chainable) ChainDummy(funcs ...interface{}) *Chainable {
-	for _, fn := range funcs {
-		c.addFunc(fn, false)
-	}
+	c.addFuncs(funcs, false)
 	return c
 }
 
@@ -159,12 +155,14 @@ func (c *Chainable) Reset() *Chainable {
 	return c
 }
 
-// addFunc add a new function to the chain, creating the underlying link
-func (c *Chainable) addFunc(fn interface{}, handleError bool) {
-	c.links = append(c.links, link{
-		fn:          fn,
-		handleError: handleError,
-	})
+// addFuncs add new functions to the chain, creating the underlying link
+func (c *Chainable) addFuncs(funcs []interface{}, handleError bool) {
+	for _, fn := range funcs {
+		c.links = append(c.links, link{
+			fn:          fn,
+			handleError: handleError,
+		})
+	}
 }
 
 // process calls the function fn associated to the link, transforming args using reflection
@@ -200,11 +198,11 @@ func (lk *link) process(linkIndex int, args []interface{}) ([]interface{}, error
 func validateFunc(linkIndex int, obj reflect.Value) error {
 	// Zero value reflected: not a valid function
 	if obj == (reflect.Value{}) {
-		return NewNotAFunctionError(linkIndex)
+		return notAFunctionError(linkIndex)
 	}
 
 	if obj.Type().Kind() != reflect.Func {
-		return NewNotAFunctionError(linkIndex)
+		return notAFunctionError(linkIndex)
 	}
 
 	return nil
@@ -213,7 +211,7 @@ func validateFunc(linkIndex int, obj reflect.Value) error {
 // validateFuncArgs validates if len(args) matches the arity of fn
 func validateArgs(linkIndex int, fn reflect.Type, args []interface{}) error {
 	if !fn.IsVariadic() && (fn.NumIn() != len(args)) {
-		return NewArgumentMismatchError(linkIndex, len(args), fn.NumIn())
+		return argumentMismatchError(linkIndex, len(args), fn.NumIn())
 	}
 
 	return nil
