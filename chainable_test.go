@@ -17,7 +17,7 @@ func TestChain(t *testing.T) {
 		Chain(sum2, mul2).
 		Unwrap()
 
-	assert.Equal(t, []interface{}{12}, ret)
+	assert.Equal(t, []Argument{12}, ret)
 	assert.NoError(t, err)
 }
 
@@ -61,6 +61,6 @@ func TestReset(t *testing.T) {
 
 	res, err := New().Chain(returnOne).Reset().Unwrap()
 
-	assert.Equal(t, []interface{}{}, res)
+	assert.Equal(t, []Argument{}, res)
 	assert.NoError(t, err)
 }

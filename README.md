@@ -64,7 +64,7 @@ res, err := chainable.New().
     ).
     Unwrap()
 
-// "Unwrap" returns the result as a slice of interface{}, matching the return values
+// "Unwrap" returns the result as a slice of Argument, matching the return values
 // of the last function. So, we just need to cast them to the correct type
 z := res[0].(int)
 ```
@@ -96,7 +96,7 @@ plus2AndError := func (x int, e error) (int)        { return x + 2 }
 chainable.New().
     ChainDummy(raiseError).
     Chain(plus2AndError).
-    Unwrap() // returns []interface{4}, nil
+    Unwrap() // returns []Argument{4}, nil
 ```
 
 "Chain" and "DummyChain" methods are variadics, and can be used in conjunction:
