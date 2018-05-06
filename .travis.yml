@@ -5,7 +5,6 @@ notifications:
   email: false
 
 go:
-  - "1.6"
   - "1.7"
   - "1.8"
   - "1.9"
@@ -16,7 +15,7 @@ install:
 
 before_script:
   - GO_FILES=$(find . -iname '*.go' -type f | grep -v /vendor/) # All the .go files, excluding vendor/
-  - go get github.com/golang/lint/golint                        # Install golint
+  - go get golang.org/x/lint/golint                             # Install golint
   - go get honnef.co/go/tools/cmd/megacheck                     # Install megacheck
   - go get github.com/fzipp/gocyclo                             # Install gocycle
 
