@@ -27,25 +27,28 @@ func TestChainDummy(t *testing.T) {
 	f1 := func() error { return genericError }
 	f2 := func(e error) int { return 0 }
 
-	_, err := New().ChainDummy(f1, f2).Unwrap()
+	ret, err := New().ChainDummy(f1, f2).Unwrap()
 
+	assert.Equal(t, []Argument{0}, ret)
 	assert.NoError(t, err)
 }
 
 func TestNotAFunction(t *testing.T) {
 	var err error
 
+	errMsg := "(Error on Link: 0) Element isn't a function"
+
 	// string
 	_, err = New().Chain("not a function").Unwrap()
-	assert.EqualError(t, err, "(Error on Link: 0) Element isn't a function")
+	assert.EqualError(t, err, errMsg)
 
 	// number
 	_, err = New().Chain(123).Unwrap()
-	assert.EqualError(t, err, "(Error on Link: 0) Element isn't a function")
+	assert.EqualError(t, err, errMsg)
 
 	// nil
 	_, err = New().Chain(nil).Unwrap()
-	assert.EqualError(t, err, "(Error on Link: 0) Element isn't a function")
+	assert.EqualError(t, err, errMsg)
 }
 
 func TestArgumentMismatch(t *testing.T) {
