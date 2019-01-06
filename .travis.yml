@@ -5,7 +5,6 @@ notifications:
   email: false
 
 go:
-  - "1.9"
   - "1.10"
   - "1.11"
 
@@ -15,7 +14,7 @@ install:
 before_script:
   - GO_FILES=$(find . -iname '*.go' -type f | grep -v /vendor/) # All the .go files, excluding vendor/
   - go get golang.org/x/lint/golint                             # Install golint
-  - go get honnef.co/go/tools/cmd/megacheck                     # Install megacheck
+  - go get honnef.co/go/tools/cmd/staticcheck                   # Install staticcheck
   - go get github.com/fzipp/gocyclo                             # Install gocycle
 
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter # Install CodeClimate reporter
@@ -25,7 +24,7 @@ before_script:
 script:
   - test -z $(gofmt -s -l $GO_FILES)           # Fail if a .go file hasn't been formatted with gofmt
   - go vet ./...                               # go vet is the official Go static analyzer
-  - megacheck ./...                            # "go vet on steroids" + linter
+  - staticcheck ./...                          # Static code checking
   - gocyclo -over 19 $GO_FILES                 # forbid code with huge functions
   - golint -set_exit_status $(go list ./...)   # one last linter
   - go test -v -race -coverprofile c.out ./... # Run the tests with race-condition enabled and generate the coverage report
