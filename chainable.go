@@ -37,14 +37,14 @@ func (c *Chainable) From(args ...Argument) *Chainable {
 // Chain appends a new function to the chain, with error
 // handling enabled
 func (c *Chainable) Chain(funcs ...Function) *Chainable {
-	c.addFuncs(funcs, true)
+	c.chainFuncs(funcs, true)
 	return c
 }
 
 // ChainDummy appends a new function to the chain, with error
 // handling disabled
 func (c *Chainable) ChainDummy(funcs ...Function) *Chainable {
-	c.addFuncs(funcs, false)
+	c.chainFuncs(funcs, false)
 	return c
 }
 
@@ -73,8 +73,8 @@ func (c *Chainable) Reset() *Chainable {
 	return c
 }
 
-// addFuncs add new functions to the chain, creating the underlying link
-func (c *Chainable) addFuncs(funcs []Function, handleError bool) {
+// chainFuncs add new functions to the chain, creating the underlying link
+func (c *Chainable) chainFuncs(funcs []Function, handleError bool) {
 	for _, fn := range funcs {
 		c.links = append(c.links, link{
 			fn:          fn,
@@ -115,15 +115,25 @@ func (lk *link) process(linkIndex int, args []Argument) ([]Argument, error) {
 // validateFunc validates if obj is a function
 func validateFunc(linkIndex int, obj reflect.Value) error {
 	// Zero value reflected: not a valid function
-	if obj == (reflect.Value{}) {
-		return notAFunctionError(linkIndex)
-	}
-
-	if obj.Type().Kind() != reflect.Func {
+	if !isFunc(obj) {
 		return notAFunctionError(linkIndex)
 	}
 
 	return nil
+}
+
+// isFunc returns a boolean indicating if obj is a function object
+func isFunc(obj reflect.Value) bool {
+	// Zero value reflected: not a valid function
+	if obj == (reflect.Value{}) {
+		return false
+	}
+
+	if obj.Type().Kind() != reflect.Func {
+		return false
+	}
+
+	return true
 }
 
 // validateFuncArgs validates if len(args) matches the arity of fn
