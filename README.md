@@ -11,7 +11,7 @@ Provides an easy and convenient way of chaining function calls in Golang, with s
 
 ## Requirements
 
-- Go 1.10 or later
+- Go 1.9 or later
 
 ## Installation
 
