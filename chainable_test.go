@@ -8,29 +8,133 @@ import (
 )
 
 func TestChain(t *testing.T) {
-	sum2 := func(x int) int { return x + 2 }
-	mul2 := func(x int) int { return x * 2 }
+	testCases := []struct {
+		desc        string
+		from        []Argument
+		funcs       []Function
+		returnValue []Argument
+		err         error
+	}{
+		{
+			desc: "Regular chain",
+			from: []Argument{4},
+			funcs: []Function{
+				func(x int) int { return x + 2 },
+				func(x int) int { return x * 2 },
+			},
+			returnValue: []Argument{12},
+			err:         nil,
+		},
+		{
+			desc: "No initial value in chain",
+			from: []Argument{},
+			funcs: []Function{
+				func() int { return 2 },
+				func(x int) int { return x * 2 },
+			},
+			returnValue: []Argument{4},
+			err:         nil,
+		},
+		{
+			desc: "No return value",
+			from: []Argument{4},
+			funcs: []Function{
+				func(x int) int { return x + 2 },
+				func(x int) int { return x * 2 },
+				func(int) {},
+			},
+			returnValue: []Argument{},
+			err:         nil,
+		},
+		{
+			desc: "With error",
+			from: []Argument{},
+			funcs: []Function{
+				func() int { return 0 },
+				func(x int) error { return errors.New("a generic error") },
+			},
+			returnValue: []Argument{},
+			err:         errors.New("a generic error"),
+		},
+		{
+			desc: "Without argument feedback",
+			from: []Argument{},
+			funcs: []Function{
+				func() {},
+				func() {},
+			},
+			returnValue: []Argument{},
+			err:         nil,
+		},
+	}
 
-	// (4 + 2) * 2 = 12
-	ret, err := New().
-		From(4).
-		Chain(sum2, mul2).
-		Unwrap()
-
-	assert.Equal(t, []Argument{12}, ret)
-	assert.NoError(t, err)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			rv, err := New().From(tc.from...).Chain(tc.funcs...).Unwrap()
+			assert.Equal(t, tc.returnValue, rv)
+			assert.Equal(t, tc.err, err)
+		})
+	}
 }
 
 func TestChainDummy(t *testing.T) {
-	genericError := errors.New("a generic error")
+	testCases := []struct {
+		desc        string
+		from        []Argument
+		funcs       []Function
+		returnValue []Argument
+		err         error
+	}{
+		{
+			desc: "Regular chain",
+			from: []Argument{4},
+			funcs: []Function{
+				func(x int) int { return x + 2 },
+				func(x int) int { return x * 2 },
+			},
+			returnValue: []Argument{12},
+			err:         nil,
+		},
+		{
+			desc: "With error in the end of the chain",
+			from: []Argument{},
+			funcs: []Function{
+				func() int { return 2 },
+				func(x int) (int, error) { return x, errors.New("a generic error") },
+			},
+			returnValue: []Argument{2, errors.New("a generic error")},
+			err:         nil,
+		},
+		{
+			desc: "With cascading error",
+			from: []Argument{},
+			funcs: []Function{
+				func() error { return errors.New("a generic error") },
+				func(e error) error { return e },
+				func(e error) error { return e },
+			},
+			returnValue: []Argument{errors.New("a generic error")},
+			err:         nil,
+		},
+		{
+			desc: "With cascading error",
+			from: []Argument{errors.New("a generic error")},
+			funcs: []Function{
+				func(e error) error { return e },
+				func(e error) error { return e },
+			},
+			returnValue: []Argument{errors.New("a generic error")},
+			err:         nil,
+		},
+	}
 
-	f1 := func() error { return genericError }
-	f2 := func(e error) int { return 0 }
-
-	ret, err := New().ChainDummy(f1, f2).Unwrap()
-
-	assert.Equal(t, []Argument{0}, ret)
-	assert.NoError(t, err)
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			rv, err := New().From(tc.from...).ChainDummy(tc.funcs...).Unwrap()
+			assert.Equal(t, tc.returnValue, rv)
+			assert.Equal(t, tc.err, err)
+		})
+	}
 }
 
 func TestNotAFunction(t *testing.T) {

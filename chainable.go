@@ -57,7 +57,7 @@ func (c *Chainable) Unwrap() ([]Argument, error) {
 
 	for linkIndex, link := range c.links {
 		if v, err = link.process(linkIndex, v); err != nil {
-			return nil, err
+			return v, err
 		}
 	}
 
@@ -160,5 +160,9 @@ func reflectArgs(args []Argument) []reflect.Value {
 // doesReturnError returns true if the last return
 // value for vfn is a type error
 func doesReturnError(vfnType reflect.Type) bool {
+	if vfnType.NumOut() == 0 {
+		return false
+	}
+
 	return vfnType.Out(vfnType.NumOut()-1) == reflect.TypeOf((*error)(nil)).Elem()
 }
