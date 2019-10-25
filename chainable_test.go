@@ -99,6 +99,16 @@ func TestChain(t *testing.T) {
 			returnValue: []Argument{genericStruct{}},
 			err:         nil,
 		},
+		{
+			desc: "With 'nil' value feeded to the chain",
+			from: []Argument{1, 2, nil},
+			funcs: []Function{
+				func(a, b int, e error) (int, int, error) { return a, b, e },
+				func(a, b int) (int, int) { return a, b },
+			},
+			returnValue: []Argument{1, 2},
+			err:         nil,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -140,9 +150,8 @@ func TestChainDummy(t *testing.T) {
 		},
 		{
 			desc: "With cascading error",
-			from: []Argument{},
+			from: []Argument{errGeneric},
 			funcs: []Function{
-				func() error { return errGeneric },
 				func(e error) error { return e },
 				func(e error) error { return e },
 			},
@@ -150,13 +159,13 @@ func TestChainDummy(t *testing.T) {
 			err:         nil,
 		},
 		{
-			desc: "With cascading error",
-			from: []Argument{errGeneric},
+			desc: "Without argument feedback",
+			from: []Argument{},
 			funcs: []Function{
-				func(e error) error { return e },
-				func(e error) error { return e },
+				func() {},
+				func() {},
 			},
-			returnValue: []Argument{errGeneric},
+			returnValue: []Argument{},
 			err:         nil,
 		},
 		{
@@ -177,6 +186,16 @@ func TestChainDummy(t *testing.T) {
 				func(gi genericInterface, e error) (genericInterface, error) { return gi, e },
 			},
 			returnValue: []Argument{genericStruct{}, errGeneric},
+			err:         nil,
+		},
+		{
+			desc: "With 'nil' value feeded to the chain",
+			from: []Argument{1, 2, nil},
+			funcs: []Function{
+				func(a, b int, e error) (int, int, error) { return a, b, e },
+				func(a, b int, e error) (int, int, error) { return a, b, e },
+			},
+			returnValue: []Argument{1, 2, nil},
 			err:         nil,
 		},
 	}
