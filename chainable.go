@@ -97,7 +97,7 @@ func (lk *link) process(linkIndex int, args []Argument) ([]Argument, error) {
 
 	// call the function
 	out := []Argument{}
-	for _, o := range vfn.Call(reflectArgs(args)) {
+	for _, o := range vfn.Call(reflectArgs(vfnType, args)) {
 		out = append(out, o.Interface())
 	}
 
@@ -147,11 +147,17 @@ func validateArgs(linkIndex int, fn reflect.Type, args []Argument) error {
 
 // reflectArgs transforms the args list in a list of
 // reflect.Value, used to call a function using reflection
-func reflectArgs(args []Argument) []reflect.Value {
+func reflectArgs(fnType reflect.Type, args []Argument) []reflect.Value {
 	in := make([]reflect.Value, len(args))
 
 	for k, arg := range args {
-		in[k] = reflect.ValueOf(arg)
+		if arg == nil {
+			// Use the zero value of the function parameter type,
+			// since "reflect.Call" doesn't accept "nil" parameters
+			in[k] = reflect.New(fnType.In(k)).Elem()
+		} else {
+			in[k] = reflect.ValueOf(arg)
+		}
 	}
 
 	return in
